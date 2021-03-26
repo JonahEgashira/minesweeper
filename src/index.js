@@ -56,7 +56,6 @@ class Game extends React.Component {
       this.state.squares[i] = new Array(col).fill(0);
       this.state.visible[i] = new Array(col).fill(null);
     }
-    console.log(this.state.visible);
 
     // Place Bombs
     let bombLeft = this.state.bombCount;
@@ -133,6 +132,7 @@ class Game extends React.Component {
     if (squares[i][j] === 0) {
       this.searchEmptyCell(i, j);
     }
+    visible[i][j] = true;
     this.setState({
       squares: squares,
       visible: visible,
