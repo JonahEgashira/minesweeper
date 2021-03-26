@@ -133,9 +133,6 @@ class Game extends React.Component {
     if (squares[i][j] === 0) {
       this.searchEmptyCell(i, j);
     }
-    visible[i][j] = true;
-
-
     this.setState({
       squares: squares,
       visible: visible,
