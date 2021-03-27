@@ -19,7 +19,7 @@ body {
   
   .square {
     background: #fff;
-    border: 1px solid #999;
+    border: 2px solid #999;
     float: left;
     font-size: 24px;
     font-weight: bold;
@@ -44,8 +44,13 @@ body {
     display: flex;
     flex-direction: row;
   }
+
+  .game-board {
+    margin-top : 40px;
+  }
   
   .game-info {
+    margin-top: 40px;
     margin-left: 20px;
   }
   
