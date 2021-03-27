@@ -39,55 +39,62 @@ class Board extends React.Component {
   }
 }
 
-class Game extends React.Component {
-  constructor(props) {
-    const row = 9;
-    const col = 9;
-    super(props);
-    this.state = {
-      row: row,
-      col: row,
-      bombCount: 10,
-      squares: Array(row).fill(0),
-      visible: Array(row).fill(null),
-    }
-    // Create Grid
-    for (let i = 0; i < row; i++) {
-      this.state.squares[i] = new Array(col).fill(0);
-      this.state.visible[i] = new Array(col).fill(null);
-    }
+function generateBoard(squares, visible, row, col, bombCount) {
+  // Create Grid
+  for (let i = 0; i < row; i++) {
+    squares[i] = new Array(col).fill(0);
+    visible[i] = new Array(col).fill(null);
+  }
 
-    // Place Bombs
-    let bombLeft = this.state.bombCount;
-    while (bombLeft > 0) {
-      const row_index = Math.floor(Math.random() * row);
-      const col_index = Math.floor(Math.random() * col);
+  // Place Bombs
+  let bombLeft = bombCount;
+  while (bombLeft > 0) {
+    const row_index = Math.floor(Math.random() * row);
+    const col_index = Math.floor(Math.random() * col);
 
-      if (this.state.squares[row_index][col_index] === 0) {
-        this.state.squares[row_index][col_index] = -1;
-        bombLeft--;
-      }
+    if (squares[row_index][col_index] === 0) {
+      squares[row_index][col_index] = -1;
+      bombLeft--;
     }
-    // Count Bombs Around the Cell
-    const dx = [1, 1, 1, 0, 0, -1, -1, -1];
-    const dy = [1, 0, -1, 1, -1, 1, 0, -1];
+  }
+  // Count Bombs Around the Cell
+  const dx = [1, 1, 1, 0, 0, -1, -1, -1];
+  const dy = [1, 0, -1, 1, -1, 1, 0, -1];
 
-    let squares = this.state.squares;
-    for (let i = 0; i < row; i++) {
-      for (let j = 0; j < col; j++) {
-        if (squares[i][j] === -1) continue;
-        for (let k = 0; k < dx.length; k++) {
-          const nx = i + dx[k];
-          const ny = j + dy[k];
-          if (0 <= nx && nx < row && 0 <= ny && ny < col) {
-            if (squares[nx][ny] === -1) {
-              squares[i][j]++;
-            }
+  for (let i = 0; i < row; i++) {
+    for (let j = 0; j < col; j++) {
+      if (squares[i][j] === -1) continue;
+      for (let k = 0; k < dx.length; k++) {
+        const nx = i + dx[k];
+        const ny = j + dy[k];
+        if (0 <= nx && nx < row && 0 <= ny && ny < col) {
+          if (squares[nx][ny] === -1) {
+            squares[i][j]++;
           }
         }
       }
     }
-    this.state.squares = squares;
+  }
+  return [squares, visible];
+}
+
+class Game extends React.Component {
+  constructor(props) {
+    const row = 9;
+    const col = 9;
+    const bombCount = 10;
+    super(props);
+    this.state = {
+      isGameOver: false,
+      row: row,
+      col: col,
+      bombCount: bombCount,
+      squares: Array(row).fill(0),
+      visible: Array(row).fill(null),
+    }
+    const board = generateBoard(this.state.squares, this.state.visible, row, col, bombCount);
+    this.state.squares = board[0];
+    this.state.visible = board[1];
   }
 
   searchEmptyCell(i, j) {
@@ -114,7 +121,7 @@ class Game extends React.Component {
         }
         else {
           visible[nx][ny] = true;
-          this.setState({ visible : visible });
+          this.setState({ visible: visible });
         }
       }
     }
@@ -124,6 +131,14 @@ class Game extends React.Component {
     const squares = this.state.squares.slice();
     const visible = this.state.visible.slice();
 
+    // 爆弾を押しちゃった
+    if (squares[i][j] === -1) {
+      this.setState({ isGameOver: true });
+    }
+    // ゲームオーバーだったら何もしない
+    if (this.state.isGameOver) {
+      return;
+    }
     // 見えてるところをクリックしても何も起きない
     if (visible[i][j]) {
       return;
@@ -139,7 +154,27 @@ class Game extends React.Component {
     })
   }
 
+  resetGame() {
+    const squares = new Array(this.state.row).fill(0);
+    const visible = new Array(this.state.row).fill(null);
+    const board = generateBoard(squares, visible, this.state.row, this.state.col, this.state.bombCount);
+
+    this.setState({
+      isGameOver : false,
+      squares : board[0],
+      visible : board[1],
+    });
+  }
+
   render() {
+    let status = '';
+    let reset = '';
+
+    if (this.state.isGameOver) {
+      status = "GAME OVER";
+      reset = <button onClick={() => this.resetGame()}>{"Restart Game"}</button>;
+    }
+
     return (
       <div className="game">
         <div className="game-board">
@@ -152,8 +187,8 @@ class Game extends React.Component {
           />
         </div>
         <div className="game-info">
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
+          <div>{status}</div>
+          {reset}
         </div>
       </div>
     );
